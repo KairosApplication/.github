@@ -1,0 +1,42 @@
+name: Criar tarefa técnica
+description: Organize manutenção, documentação, infraestrutura ou refatoração.
+title: '[Task]: '
+body:
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objetivo
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Escopo
+      description: O que deve mudar e o que fica fora desta tarefa?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critérios de conclusão
+      placeholder: |
+        - [ ] Alteração implementada...
+        - [ ] Validação realizada...
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Plano de validação
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependências e riscos
+      description: Indique migrações, mudanças incompatíveis ou coordenação com outros repos.
+  - type: input
+    id: card
+    attributes:
+      label: Card do Jira
+      description: Link opcional do card relacionado.
