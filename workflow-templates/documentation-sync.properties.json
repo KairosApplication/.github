@@ -1,0 +1,4 @@
+{
+  "name": "Organization documentation synchronization",
+  "description": "Notify the central documentation bot after a push to main. Requires DOCS_BOT_TOKEN."
+}
