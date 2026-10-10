@@ -1,0 +1,65 @@
+name: Shared AWS application deploy
+
+on:
+  workflow_call:
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: false
+      AWS_SECRET_ACCESS_KEY:
+        required: false
+      AWS_SESSION_TOKEN:
+        required: false
+    inputs:
+      service:
+        type: string
+        required: true
+      source-sha:
+        type: string
+        required: true
+      aws-region:
+        type: string
+        required: true
+      aws-account-id:
+        type: string
+        required: true
+      cluster-name:
+        type: string
+        required: true
+      publisher-role-arn:
+        type: string
+        required: true
+      deployer-role-arn:
+        type: string
+        required: true
+      api-host:
+        type: string
+        default: ""
+      certificate-arn:
+        type: string
+        default: ""
+      infra-ref:
+        type: string
+        default: main
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  release:
+    uses: KairosApplication/kairos-infra/.github/workflows/reusable-release.yml@main
+    secrets:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+    with:
+      service: ${{ inputs.service }}
+      source-sha: ${{ inputs.source-sha }}
+      aws-region: ${{ inputs.aws-region }}
+      aws-account-id: ${{ inputs.aws-account-id }}
+      cluster-name: ${{ inputs.cluster-name }}
+      publisher-role-arn: ${{ inputs.publisher-role-arn }}
+      deployer-role-arn: ${{ inputs.deployer-role-arn }}
+      api-host: ${{ inputs.api-host }}
+      certificate-arn: ${{ inputs.certificate-arn }}
+      infra-ref: ${{ inputs.infra-ref }}
