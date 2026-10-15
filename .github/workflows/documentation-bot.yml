@@ -1,0 +1,94 @@
+name: Organization documentation bot
+
+on:
+  schedule:
+    - cron: '17 12 * * *'
+  workflow_dispatch:
+  repository_dispatch:
+    types: [documentation-sync]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: organization-documentation-bot
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.repositories.outputs.matrix }}
+      count: ${{ steps.repositories.outputs.count }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check three-day interval
+        id: cadence
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          python - <<'PY'
+          import datetime, os
+          elapsed = (datetime.datetime.now(datetime.timezone.utc).date() - datetime.date(2026, 10, 10)).days
+          enabled = os.environ['EVENT'] != 'schedule' or elapsed % 3 == 0
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write(f'enabled={str(enabled).lower()}\n')
+          PY
+      - name: Discover eligible organization repositories
+        id: repositories
+        if: steps.cadence.outputs.enabled == 'true'
+        env:
+          ORGANIZATION: ${{ github.repository_owner }}
+          TARGET_REPOSITORY: ${{ github.event.client_payload.repository || '' }}
+          DOCS_BOT_TOKEN: ${{ secrets.DOCS_BOT_TOKEN }}
+        run: |
+          test -n "$DOCS_BOT_TOKEN" || { echo 'Configure organization secret DOCS_BOT_TOKEN'; exit 1; }
+          python .github/scripts/sync_org_docs.py list
+
+  synchronize:
+    needs: discover
+    if: needs.discover.outputs.count != '' && needs.discover.outputs.count != '0'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix: ${{ fromJSON(needs.discover.outputs.matrix) }}
+    env:
+      ORGANIZATION: ${{ github.repository_owner }}
+      TARGET_REPOSITORY: ${{ matrix.repository }}
+      TARGET_BRANCH: ${{ matrix.branch }}
+      DOCS_BOT_TOKEN: ${{ secrets.DOCS_BOT_TOKEN }}
+    steps:
+      - name: Checkout central bot
+        uses: actions/checkout@v4
+        with:
+          path: automation
+          persist-credentials: false
+      - name: Checkout the target repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ matrix.repository }}
+          ref: ${{ matrix.branch }}
+          token: ${{ secrets.DOCS_BOT_TOKEN }}
+          path: target
+          persist-credentials: false
+      - name: Synchronize THIS repository's existing wiki from merged content
+        if: matrix.wiki
+        run: python automation/.github/scripts/sync_org_docs.py wiki --root target --wiki target-wiki
+      - name: Refresh THIS repository's README and supported API reference
+        run: python automation/.github/scripts/sync_org_docs.py generate --root target
+      - name: Propose documentation changes in THIS repository
+        uses: peter-evans/create-pull-request@v8
+        with:
+          path: target
+          token: ${{ secrets.DOCS_BOT_TOKEN }}
+          base: ${{ matrix.branch }}
+          branch: chore/automated-documentation
+          title: 'docs: atualizar documentação automaticamente'
+          commit-message: 'docs: sincronizar índice e referência técnica'
+          body: 'Atualização gerada a partir do código deste repositório. Sem auto-merge. A wiki acompanha apenas conteúdo já integrado.'
+          add-paths: |
+            README.md
+            readme.md
+            Readme.md
+            docs/api-endpoints.md

@@ -1,0 +1,26 @@
+# Install this caller in .github/workflows/ of each repository for immediate post-merge sync.
+name: Notify organization documentation bot
+on:
+  push:
+    branches: [main]
+permissions: {}
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request synchronization of this repository only
+        env:
+          DOCS_BOT_TOKEN: ${{ secrets.DOCS_BOT_TOKEN }}
+          ORGANIZATION: ${{ github.repository_owner }}
+          TARGET_REPOSITORY: ${{ github.repository }}
+        run: |
+          python - <<'PY'
+          import json, os, urllib.request
+          request = urllib.request.Request(
+              f"https://api.github.com/repos/{os.environ['ORGANIZATION']}/.github/dispatches",
+              data=json.dumps({'event_type': 'documentation-sync', 'client_payload': {'repository': os.environ['TARGET_REPOSITORY']}}).encode(),
+              headers={'Authorization': 'Bearer ' + os.environ['DOCS_BOT_TOKEN'], 'Accept': 'application/vnd.github+json'},
+              method='POST')
+          with urllib.request.urlopen(request) as response:
+              print('Documentation synchronization requested:', response.status)
+          PY
