@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Relatar uma vulnerabilidade com segurança
+    url: https://github.com/KairosApplication/.github/blob/main/SECURITY.md
+    about: Consulte os canais privados antes de compartilhar detalhes sensíveis.
