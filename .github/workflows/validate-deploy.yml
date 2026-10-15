@@ -1,0 +1,32 @@
+name: Validate organization deploy workflow
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate organization templates
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate reusable workflow syntax
+        run: |
+          set -euo pipefail
+          version=1.7.7
+          archive="actionlint_${version}_linux_amd64.tar.gz"
+          base="https://github.com/rhysd/actionlint/releases/download/v${version}"
+          curl --fail --silent --show-error --location "$base/$archive" -o "$RUNNER_TEMP/$archive"
+          curl --fail --silent --show-error --location "$base/actionlint_${version}_checksums.txt" -o "$RUNNER_TEMP/checksums.txt"
+          (cd "$RUNNER_TEMP" && grep "  $archive$" checksums.txt | sha256sum --check -)
+          tar -xzf "$RUNNER_TEMP/$archive" -C "$RUNNER_TEMP" actionlint
+          "$RUNNER_TEMP/actionlint" -shellcheck= .github/workflows/*.yml
