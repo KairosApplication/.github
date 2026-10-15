@@ -1,0 +1,44 @@
+name: Propor funcionalidade
+description: Descreva uma melhoria com objetivo, escopo e critérios de aceite.
+title: '[Feature]: '
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema ou necessidade
+      description: Qual usuário é afetado e por que a mudança é necessária?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Solução proposta
+      description: Descreva o comportamento esperado e os limites da proposta.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critérios de aceite
+      placeholder: |
+        - [ ] O usuário consegue...
+        - [ ] O cenário de erro...
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Plano de validação
+      description: Como verificar a funcionalidade? Considere testes, acessibilidade e segurança quando aplicável.
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Dependências e impactos
+      description: Outros repos, API, banco, mobile, configuração e documentação afetados.
+  - type: input
+    id: card
+    attributes:
+      label: Card do Jira
+      description: Link opcional do card relacionado.

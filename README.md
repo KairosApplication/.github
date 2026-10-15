@@ -1,68 +1,71 @@
 # Kairos · Padrões da organização
 
-Repositório de apresentação e padrões compartilhados da [KairosApplication](https://github.com/KairosApplication). Não contém as aplicações do produto nem executa o deploy das APIs.
+Este repositório concentra a apresentação da [KairosApplication](https://github.com/KairosApplication) e os padrões compartilhados de colaboração. Não contém as aplicações do produto, não substitui a documentação técnica dos projetos e não executa o deploy das APIs.
 
-O Kairos apoia a gestão de gôndolas em supermercados. A visão do produto e o mapa dos projetos estão no [perfil da organização](https://github.com/KairosApplication/.github/blob/main/profile/README.md). A [wiki](https://github.com/KairosApplication/.github/wiki) reúne as orientações deste repositório.
-
-## Estado da documentação
-
-Na revisão de 10/10/2026, a `main` contém o perfil e a licença. Os padrões, este README e as validações abaixo estão em PRs abertas; só ficam disponíveis na branch principal após o merge.
-
-| PR | Escopo |
-| --- | --- |
-| [#2](https://github.com/KairosApplication/.github/pull/2) | Guia de contribuição, segurança, formulários de issues, template de PR e validação estrutural. |
-| [#4](https://github.com/KairosApplication/.github/pull/4) | Alternativa de template compartilhado de PR. |
-| [#6](https://github.com/KairosApplication/.github/pull/6) | README deste repositório. |
-| [#7](https://github.com/KairosApplication/.github/pull/7) | Validação de workflows com actionlint, secret scan e guia do deploy centralizado. |
-
-As PRs #2 e #6 alteram o README; #2 e #4 adicionam templates com nomes que diferem em maiúsculas/minúsculas; #2 e #7 adicionam secret scan e um check chamado **Validate organization templates**. Consolidar os arquivos e evitar checks duplicados antes dos merges.
+O Kairos apoia a gestão de gôndolas em supermercados. A visão do produto, a arquitetura de referência e o mapa dos projetos estão no [perfil da organização](profile/README.md). A [wiki](https://github.com/KairosApplication/.github/wiki) reúne orientações complementares deste repositório.
 
 ## Organização dos arquivos
 
-Os caminhos abaixo identificam o conteúdo existente ou proposto nas PRs indicadas:
-
 | Caminho | Responsabilidade |
 | --- | --- |
-| `profile/README.md` | Apresentação pública da organização, já na main. |
-| `README.md` | Objetivo, estado e navegação deste repositório. |
-| `CONTRIBUTING.md` e `SECURITY.md` | Contribuição e relato privado de vulnerabilidades (#2). |
-| `.github/ISSUE_TEMPLATE/` | Formulários de bug, funcionalidade e tarefa técnica (#2). |
-| `.github/pull_request_template.md` | Template da #2; consolidar com `.github/PULL_REQUEST_TEMPLATE.md` da #4. |
-| `.github/workflows/` | Checks deste repositório (#2 e #7). |
-| `.github/scripts/validate.py` e `.github/validation.md` | Validação estrutural e seus limites (#2). |
-| `docs/aws-deploy.md` | Direcionamento para a automação em kairos-infra (#7). |
-| `LICENSE` | Licença deste repositório; não define a licença dos demais projetos. |
+| [profile/README.md](profile/README.md) | Apresentação pública da organização e mapa dos projetos. |
+| [README.md](README.md) | Objetivo e navegação deste repositório. |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Convenções de branches, commits, validação e revisão. |
+| [SECURITY.md](SECURITY.md) | Relato responsável e privado de vulnerabilidades. |
+| [.github/ISSUE_TEMPLATE/](.github/ISSUE_TEMPLATE/) | Formulários de bug, funcionalidade e tarefa técnica. |
+| [.github/pull_request_template.md](.github/pull_request_template.md) | Template compartilhado de pull requests. |
+| [.github/workflows/](.github/workflows/) | Validações executadas neste repositório. |
+| [.github/scripts/validate.py](.github/scripts/validate.py) e [.github/validation.md](.github/validation.md) | Validação estrutural e seus limites. |
+| [.github/copilot-instructions.md](.github/copilot-instructions.md) | Orientações de revisão específicas deste repositório. |
+| [docs/aws-deploy.md](docs/aws-deploy.md) | Direcionamento para a automação centralizada no `kairos-infra`. |
+| [LICENSE](LICENSE) | Licença deste repositório; não define a licença dos demais projetos. |
 
 ## Como os padrões são aplicados
 
-Arquivos comunitários compatíveis deste repositório público podem servir como padrão para os outros repositórios da organização depois de integrados na branch padrão. Um arquivo equivalente próprio no projeto de destino tem prioridade.
+O GitHub utiliza os arquivos comunitários compatíveis deste repositório público, presentes na branch padrão, como padrão para os repositórios da organização que não tenham um arquivo próprio correspondente. Templates locais de PR e configurações/formulários locais de issues têm prioridade; não são sobrescritos por estes padrões.
 
 - O perfil utiliza `profile/README.md`; o README da raiz descreve o repositório.
 - Os padrões não são copiados para o clone ou histórico Git dos projetos.
-- Templates orientam novas issues/PRs; não reescrevem descrições já publicadas.
-- Workflows e instruções do Copilot **não são herdados automaticamente**.
+- Templates orientam novas issues e PRs; não reescrevem descrições já publicadas.
+- Workflows e instruções do Copilot **não são herdados automaticamente** pelos outros repositórios.
 - Labels, assignees, revisores, rulesets e checks obrigatórios exigem configuração própria; o template não os aplica.
+- Licenças continuam sendo definidas em cada repositório.
 
 Veja a [referência oficial sobre arquivos comunitários padrão](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/creating-a-default-community-health-file).
 
 ## Contribuição e pull requests
 
-Use branches como `feat/`, `fix/`, `chore/`, `docs/`, `refactor/` e `test/`; não use `codex/`. Escreva commits em inglês no formato `type(scope): description`, com escopo opcional, e separe mudanças por responsabilidade.
+Leia o [guia de contribuição](CONTRIBUTING.md) e a [política de segurança](SECURITY.md) antes de contribuir. Use branches como `feat/`, `fix/`, `chore/`, `docs/`, `refactor/` e `test/`; não use `codex/`. Escreva commits em inglês no formato `type(scope): description`, com escopo opcional, e separe mudanças por responsabilidade.
 
-Uma PR deve conter **Tipo de PR**, **Descrição**, **Card**, **Alterações** e **Observações**. Informe também a validação realizada, preferencialmente em uma seção **Validação**, distinguindo testes executados de limitações. Vincule o card do Jira quando existir; não invente um vínculo.
+Preencha o [template de PR](.github/pull_request_template.md) com informações correspondentes ao diff:
 
-Aplique labels pelo conteúdo: `documentation` para documentação, `chore` para manutenção, `github_actions` para workflows e `security` para mudanças de segurança. Este repositório não precisa de labels de linguagem das aplicações. Revisão automática não substitui revisão humana nem os checks exigidos nas configurações do GitHub.
+- **Tipo de PR:** marque os tipos de mudança realmente realizados.
+- **Descrição:** explique o objetivo e o problema resolvido.
+- **Card:** vincule o card do Jira ou a issue quando existir; não invente um vínculo.
+- **Alterações:** liste as mudanças relevantes, sem incluir funcionalidades que não foram alteradas.
+- **Validação:** informe comandos e resultados, distinguindo testes executados de limitações.
+- **Observações:** registre impactos, compatibilidade, migrações e implantação/rollback quando aplicáveis.
+- **Checklist:** confirme as verificações realizadas antes de solicitar revisão.
 
-Leia o [guia de contribuição proposto](https://github.com/KairosApplication/.github/blob/chore/repository-validation/CONTRIBUTING.md) e a [política de segurança proposta](https://github.com/KairosApplication/.github/blob/chore/repository-validation/SECURITY.md). Não publique credenciais, cookies, dados pessoais ou vulnerabilidades em issues públicas.
+Aplique labels pelo conteúdo: `documentation` para documentação, `chore` para manutenção, `github_actions` para workflows e `security` para mudanças de segurança, quando disponíveis. Este repositório não precisa de labels de linguagem das aplicações.
+
+Revisão automática não substitui revisão humana nem os checks exigidos nas configurações do GitHub. Não publique credenciais, cookies, dados pessoais ou vulnerabilidades em issues públicas.
 
 ## Validação e deploy
 
-A #2 propõe validação sintática/estrutural dos artefatos versionados. A #7 valida workflows com actionlint em versão fixa e checksum. O secret scan usa Gitleaks com saída mascarada. Esses checks não executam aplicações, testes das APIs, bancos de dados ou deploy AWS.
+Os workflows em [.github/workflows/](.github/workflows/) validam a sintaxe e a estrutura dos artefatos versionados, verificam workflows com actionlint em versão fixa e checksum e executam secret scan com Gitleaks e saída mascarada. Esses checks não executam aplicações, testes das APIs, bancos de dados ou deploy AWS.
 
-Antes de enviar alterações, revise o Markdown, confirme os links e execute `git diff --check`. Acompanhe os checks da PR; validação sintática não deve ser apresentada como teste de aplicação.
+Antes de enviar alterações, revise o Markdown, confirme os links e execute `git diff --check`. Para executar a validação estrutural da raiz do repositório:
 
-O build e o deploy AWS ficam exclusivamente no [kairos-infra](https://github.com/KairosApplication/kairos-infra), cuja implementação central está na [PR #4](https://github.com/KairosApplication/kairos-infra/pull/4). Não configure Secrets AWS, runners ou workflows de deploy neste repositório para esse fluxo. Consulte a [wiki de infraestrutura](https://github.com/KairosApplication/kairos-infra/wiki) e o [guia de automação em revisão](https://github.com/KairosApplication/kairos-infra/blob/feat/automated-infrastructure/docs/automation.md).
+```sh
+python -m pip install PyYAML==6.0.2 sqlglot==26.33.0
+python .github/scripts/validate.py
+```
+
+Use um ambiente Python isolado e acompanhe os checks da PR. Validação sintática não deve ser apresentada como teste de aplicação. Consulte [.github/validation.md](.github/validation.md) para os limites dessas verificações; a exigência de cada check depende das configurações do GitHub.
+
+O build e o deploy AWS são responsabilidade exclusiva do [kairos-infra](https://github.com/KairosApplication/kairos-infra). A implementação centralizada está descrita na [PR #4 de infraestrutura](https://github.com/KairosApplication/kairos-infra/pull/4). Este repositório fornece os padrões da organização e não participa da execução do deploy. Não configure Secrets AWS, runners ou workflows de deploy aqui para esse fluxo. Consulte o [guia de direcionamento](docs/aws-deploy.md) e a [wiki de infraestrutura](https://github.com/KairosApplication/kairos-infra/wiki).
 
 ## Manutenção
 
-Ao integrar as PRs, atualize a seção de estado, consolide os templates/workflows e ajuste os links de branches de revisão para a main. Mantenha README e wiki alinhados sem afirmar que um workflow ou regra já está ativo apenas porque seu arquivo foi proposto.
+Mantenha o README, a wiki e os arquivos referenciados alinhados. Ao integrar mudanças, atualize os links e remova informações de revisão que deixaram de ser atuais. Preserve um único template compartilhado de PR e evite nomes de checks duplicados ao consolidar workflows. Não afirme que uma regra, workflow ou implantação está ativo apenas porque seu arquivo foi adicionado.
