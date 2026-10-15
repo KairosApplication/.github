@@ -1,0 +1,49 @@
+name: Reportar bug
+description: Informe um problema reproduzível no projeto.
+title: '[Bug]: '
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Não publique senhas, tokens, cookies, dados pessoais ou dumps de banco.
+        Para vulnerabilidades, siga a política SECURITY.md, não este formulário.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema
+      description: O que aconteceu e qual funcionalidade foi afetada?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Passos para reproduzir
+      placeholder: |
+        1. Abra...
+        2. Execute...
+        3. Observe...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamento esperado
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Ambiente
+      description: Informe branch/commit, versões, sistema, navegador ou dispositivo, conforme o projeto.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidências e validações
+      description: Logs mascarados, screenshots e comandos executados. Não envie segredos.
+  - type: input
+    id: card
+    attributes:
+      label: Card do Jira
+      description: Link opcional do card relacionado.
