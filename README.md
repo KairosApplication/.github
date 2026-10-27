@@ -93,9 +93,11 @@ Para a API Kairos com controllers em `src/main/java/com/kairos/kairosapipostgres
 1. O workflow deve estar integrado à branch padrão de `KairosApplication/.github`. Publicar só uma branch de desenvolvimento não ativa o agendamento.
 2. Configure o secret de organização **`DOCS_BOT_TOKEN`**, disponível ao repo `.github`. O token precisa ler os repositórios cobertos e escrever conteúdo/wiki e PRs neles. Um token fine-grained requer acesso aos repos escolhidos, **Contents: read/write**, **Pull requests: read/write** e Metadata/read. Valide também o acesso Git à wiki e as políticas/SSO da organização. O `GITHUB_TOKEN` de `.github` não dá acesso de escrita aos outros repositórios.
 3. Execute manualmente `Organization documentation bot` e confira um repositório antes de depender do agendamento.
-4. Habilite e inicialize a wiki de cada alvo com uma página `Home.md`. Wikis desabilitadas são ignoradas; wikis inacessíveis falham com diagnóstico (não se troca o destino por outro repo).
+4. Habilite e inicialize a wiki de cada alvo com uma página `Home.md`. Wikis desabilitadas são ignoradas; wikis inacessíveis, vazias ou sem Home geram aviso e não impedem a PR do README. Falhas na publicação da wiki também geram aviso. O resumo da execução indica o que ficou pendente; divergências de identidade ou conteúdo inválido continuam interrompendo o job.
 
-A descoberta é dinâmica: cobre repositórios acessíveis ao token, ativos, não-forks e não-vazios; exclui `.github`. Novos repositórios entram automaticamente **se o token tiver acesso a eles**. Até 256 alvos por execução, limite da matriz do GitHub Actions.
+A descoberta é dinâmica: cobre repositórios acessíveis ao token, ativos, não-forks e não-vazios, com README Markdown na raiz ou pasta `docs/`; exclui `.github`. Repositórios sem documentação são informados no resumo e ignorados antes do checkout. Assim, um repo sem documentação e com submódulo incompleto não bloqueia o bot. O submódulo precisa ser corrigido no repo de origem antes de habilitar seu checkout. Novos repositórios entram automaticamente **se o token tiver acesso a eles e houver documentação para sincronizar**. Até 256 alvos por execução, limite da matriz do GitHub Actions.
+
+A PR inclui somente os arquivos permitidos que realmente foram alterados e existem no checkout: o README com seu nome real e, quando gerada, `docs/api-endpoints.md`. Não são passadas alternativas inexistentes de maiúsculas/minúsculas ao Git. Sem alterações, a etapa de criação da PR é ignorada.
 
 ### Frequência e após merge
 

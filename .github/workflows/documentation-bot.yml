@@ -76,8 +76,10 @@ jobs:
         if: matrix.wiki
         run: python automation/.github/scripts/sync_org_docs.py wiki --root target --wiki target-wiki
       - name: Refresh THIS repository's README and supported API reference
+        id: generate
         run: python automation/.github/scripts/sync_org_docs.py generate --root target
       - name: Propose documentation changes in THIS repository
+        if: steps.generate.outputs.paths != ''
         uses: peter-evans/create-pull-request@v8
         with:
           path: target
@@ -87,8 +89,4 @@ jobs:
           title: 'docs: atualizar documentação automaticamente'
           commit-message: 'docs: sincronizar índice e referência técnica'
           body: 'Atualização gerada a partir do código deste repositório. Sem auto-merge. A wiki acompanha apenas conteúdo já integrado.'
-          add-paths: |
-            README.md
-            readme.md
-            Readme.md
-            docs/api-endpoints.md
+          add-paths: ${{ steps.generate.outputs.paths }}

@@ -14,6 +14,27 @@ from urllib.parse import quote, unquote, urlparse
 
 import java_documentation as java
 
+README_NAMES = ("README.md", "readme.md", "Readme.md")
+
+
+def notice(message, warning=False):
+    if warning:
+        escaped = message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+        print(f"::warning::{escaped}")
+    else:
+        print(message)
+    summary = os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary:
+        with open(summary, "a", encoding="utf-8") as output:
+            output.write(f"- {message}\n")
+
+
+def output_paths(paths):
+    output = os.environ.get("GITHUB_OUTPUT")
+    if output:
+        with open(output, "a", encoding="utf-8") as stream:
+            stream.write("paths<<DOCS_BOT_PATHS\n" + "\n".join(paths) + "\nDOCS_BOT_PATHS\n")
+
 
 def git(path, *args, authenticated=False):
     env = os.environ.copy()
@@ -58,8 +79,18 @@ def documents(root):
 
 
 def readme_path(root):
-    return next((root / name for name in ("README.md", "readme.md", "Readme.md")
-                 if (root / name).is_file()), None)
+    entries = {path.name: path for path in root.iterdir()}
+    return next((entries[name] for name in README_NAMES
+                 if name in entries and entries[name].is_file()), None)
+
+
+def changed_documentation_paths(root):
+    # Only pass existing, actually changed files to git add. Literal alternatives
+    # such as readme.md fail on Linux when this repo only contains README.md.
+    allowed = set(README_NAMES) | {"docs/api-endpoints.md"}
+    changed = set(git(root, "diff", "--name-only", "HEAD").splitlines())
+    changed.update(git(root, "ls-files", "--others", "--exclude-standard").splitlines())
+    return sorted(path for path in changed & allowed if (root / path).is_file())
 
 
 def source_url(repository, branch, relative):
@@ -175,11 +206,64 @@ def list_repositories(organization, requested):
                and (not requested or r["full_name"].lower() == requested.lower())]
     if requested and not targets:
         raise ValueError("Requested target is not an eligible repository in this organization")
+    documented_targets = []
+    for target in targets:
+        tree = api(f"/repos/{target['repository']}/git/trees/{quote(target['branch'], safe='')}")
+        entries = tree["tree"]
+        if tree.get("truncated"):
+            raise ValueError(f"Incomplete root tree for {target['repository']}")
+        if any((entry["path"] in README_NAMES and entry["type"] == "blob"
+                and entry["mode"] in {"100644", "100755"}) or
+               (entry["path"] == "docs" and entry["type"] == "tree") for entry in entries):
+            documented_targets.append(target)
+        else:
+            notice(f"{target['repository']}: no Markdown README or docs/; nothing to synchronize")
+            if any(entry["mode"] == "160000" for entry in entries) and not any(
+                    entry["path"] == ".gitmodules" for entry in entries):
+                notice(f"{target['repository']}: submodule entry without .gitmodules; repair the repository before enabling its checkout", warning=True)
+    targets = documented_targets
     if len(targets) > 256:
         raise ValueError("More than 256 targets: split the organization into multiple matrices")
     with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
         output.write("matrix=" + json.dumps({"include": targets}) + "\n")
         output.write(f"count={len(targets)}\n")
+
+
+def sync_wiki(root, wiki, repository, organization, branch):
+    validate_identity(root, repository, organization)
+    wiki.mkdir(parents=True, exist_ok=True)
+    url = f"https://github.com/{repository}.wiki.git"
+    try:
+        refs = git(root, "ls-remote", url, authenticated=True)
+    except subprocess.CalledProcessError:
+        notice(f"{repository}: wiki unavailable. Initialize Home or check token access/network. README synchronization continues.", warning=True)
+        return
+    if not refs:
+        notice(f"{repository}: wiki has no pages; initialize Home. README synchronization continues.", warning=True)
+        return
+    try:
+        git(wiki, "clone", url, ".", authenticated=True)
+    except subprocess.CalledProcessError:
+        notice(f"{repository}: wiki clone failed. Check access/network. README synchronization continues.", warning=True)
+        return
+    # Identity mismatches and malformed content remain fatal: do not suppress them.
+    validate_identity(wiki, repository, organization, wiki=True)
+    if not (wiki / "Home.md").exists():
+        notice(f"{repository}: wiki has no Home.md; initialize Home. README synchronization continues.", warning=True)
+        return
+    update_wiki(root, wiki, repository, organization, branch)
+    if git(wiki, "status", "--porcelain"):
+        git(wiki, "config", "user.name", "documentation-bot")
+        git(wiki, "config", "user.email", "documentation-bot@users.noreply.github.com")
+        paths = ["Home.md", *[path.name for path in sorted(wiki.glob("Bot-*.md"))]]
+        git(wiki, "add", "--", *paths)
+        git(wiki, "commit", "-m", f"docs: sync documentation from {repository}")
+        try:
+            git(wiki, "push", "origin", "HEAD", authenticated=True)
+        except subprocess.CalledProcessError:
+            notice(f"{repository}: wiki publication failed. Check Contents/write permission and concurrent edits. README synchronization continues.", warning=True)
+            return
+    notice(f"{repository}: wiki synchronized from its default branch")
 
 
 def main():
@@ -200,26 +284,12 @@ def main():
         raise ValueError("Target checkout is not the fetched default-branch snapshot")
     if args.command == "generate":
         generate(root)
+        paths = changed_documentation_paths(root)
+        output_paths(paths)
+        if not paths:
+            notice(f"{repository}: no README/reference changes to propose")
         return
-    wiki = args.wiki.resolve()
-    wiki.mkdir(parents=True, exist_ok=True)
-    url = f"https://github.com/{repository}.wiki.git"
-    # A disabled/uninitialized wiki is skipped; authentication/network errors fail the job.
-    try:
-        refs = git(root, "ls-remote", url, authenticated=True)
-    except subprocess.CalledProcessError as error:
-        raise RuntimeError("Target wiki inaccessible: initialize it or check token permissions/network") from error
-    if not refs:
-        print("Wiki has no pages; initialize it before synchronization")
-        return
-    git(wiki, "clone", url, ".", authenticated=True)
-    update_wiki(root, wiki, repository, organization, branch)
-    if git(wiki, "status", "--porcelain"):
-        git(wiki, "config", "user.name", "documentation-bot")
-        git(wiki, "config", "user.email", "documentation-bot@users.noreply.github.com")
-        git(wiki, "add", "Home.md", "Bot-*.md")
-        git(wiki, "commit", "-m", f"docs: sync documentation from {repository}")
-        git(wiki, "push", "origin", "HEAD", authenticated=True)
+    sync_wiki(root, args.wiki.resolve(), repository, organization, branch)
 
 
 if __name__ == "__main__":
